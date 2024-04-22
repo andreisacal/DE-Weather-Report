@@ -36,7 +36,7 @@ def run_open_weather_etl():
     client = boto3.client('s3')
     client.put_object(
         Bucket='(s3_bucket_name)',  # Replace '(s3_bucket_name)' with your actual S3 bucket name
-        Key=f'DAGoutput/{file_name}',  # Define the S3 key for storing the file
+        Key=f'(s3_bucket_folder)/{file_name}',  # Define the S3 key for storing the file
         Body=json_str  # Set the content of the object to the JSON string
     )
 
