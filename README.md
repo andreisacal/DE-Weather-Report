@@ -22,5 +22,30 @@ Happy coding! 🌟
 ## Project Architecture
 ![Untitled Diagram(2)](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/8ae2daf3-ffb4-4b1c-891e-c2a3f716b2cf)
 
+## How the Pipeline Works
 
-✍️ Drafting the Project Documentation...
+1. The pipeline initiates with a scheduled trigger from Airflow, launching the ETL process defined in "twitter_etl.py".
+2. Utilising "OpenWeatherAPI", the run_open_weather_etl() function sends a request to retrieve weather data for a specified city, using a scraper API key and designated search query.
+3. The retrieved weather data is formatted into a JSON string and stored in an S3 bucket as a JSON file named "open_weather_2024_04_21_15_56_22.json".
+4. With the help of an AWS Glue Job (glue_etl.py), the JSON files undergoes conversion into a structured format for further analysis and manipulation. This process includes flattening JSON data, renaming columns and converting data types.
+5. The transformed data then is loaded into AWS Redshift, a data warehouse enabling seamless integration with other analytical tools and services.
+6. Data stored in Redshift becomes readily accessible for in-depth analysis and visualisation using tools like Tableau Cloud.
+
+![1](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/7f3509cd-2b67-4311-bd03-55f27f5343e2)
+![3](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/f784aa4a-4eaa-48bb-8c64-9583dce3642b)
+![2](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/30a70daf-8e18-40b3-a170-da73493e5f3f)
+![4](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/48b01a6a-c139-4724-afcb-e6b6e5f61069)
+![5](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/bf181848-048c-4203-aed4-bacd2c1f403c)
+![6](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/889449db-ebbe-4b82-8f86-bacb57acaab2)
+![7](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/9a61ba23-3a71-4d8d-83ea-61a94671d9b8)
+
+## References
+
+- #### APIs: [OpenWeatherAPI]([https://www.scraperapi.com/](https://openweathermap.org/))
+- #### Cloud Computing: [AWS](https://aws.amazon.com/)
+- #### Data Analysis: [Tableau]([https://aws.amazon.com/](https://www.tableau.com/))
+  - #### [Redshift](https://aws.amazon.com/glue/)
+  - #### [S3](https://aws.amazon.com/s3/)
+  - #### [ATHENA](https://aws.amazon.com/athena/)
+  - #### [MWAA](https://aws.amazon.com/managed-workflows-for-apache-airflow/)
+
