@@ -2,7 +2,7 @@
 
 🚀 Introduction:
 
-Welcome back to my data engineering journey! This weekend, I delve into the realm of weather data collection and analysis, utilising the power of Python, Airflow, AWS Glue, and AWS Redshift. Follow along as I create a data pipeline for the extraction, transformation, and loading of weather data.
+Welcome back to my data engineering journey! This weekend, I delve into the realm of weather data collection and analysis, utilising the power of OpenWeatherAPI, Python, Airflow, AWS Glue, AWS Redshift and Tableau Cloud. Follow along as I create a data pipeline for the extraction, transformation, and loading of weather data.
 
 🔍 Project Overview:
 
