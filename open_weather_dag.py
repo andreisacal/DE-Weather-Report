@@ -1,12 +1,12 @@
-import json
-import requests
-import boto3
-from s3fs import S3FileSystem
-from datetime import datetime
-from datetime import timedelta
+import json  # Importing the json module for JSON data handling
+import requests  # Importing the requests module for making HTTP requests
+import boto3  # Importing the boto3 library for interaction with AWS services
+from s3fs import S3FileSystem  # Importing S3FileSystem from the s3fs library for interacting with Amazon S3
+from datetime import datetime  # Importing the datetime class from the datetime module for handling dates and times
+from datetime import timedelta  # Importing the timedelta class from the datetime module for time differences
 
-from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow import DAG  # Importing the DAG class from the airflow module for defining Directed Acyclic Graphs (DAGs)
+from airflow.operators.python import PythonOperator  # Importing the PythonOperator class from the airflow.operators.python module for executing Python functions within a DAG
 
 # Define default arguments for the DAG
 default_args = {
