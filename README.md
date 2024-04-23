@@ -49,4 +49,4 @@ Happy coding! 🌟
   - #### [S3](https://aws.amazon.com/s3/)
   - #### [ATHENA](https://aws.amazon.com/athena/)
   - #### [MWAA](https://aws.amazon.com/managed-workflows-for-apache-airflow/)
-
+- #### Blogs: [Flattening JSON objects in Python](https://towardsdatascience.com/flattening-json-objects-in-python-f5343c794b10)
