@@ -22,4 +22,8 @@ Thank you for accompanying me on this voyage through the intricacies of data eng
 
 Happy coding! 🌟
 
+## Project Architecture
+![Untitled Diagram(2)](https://github.com/andreisacal/W02-DE-Weather-Report/assets/166915179/8ae2daf3-ffb4-4b1c-891e-c2a3f716b2cf)
+
+
 ✍️ Drafting the Project Documentation...
