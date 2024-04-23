@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS weather_data (
+CREATE TABLE IF NOT EXISTS (table-name) (
     clouds_percentage BIGINT,
     co_ords_lat FLOAT,
     co_ords_lon FLOAT,
