@@ -9,6 +9,8 @@ from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
+from awsglue.dynamicframe import DynamicFrame
+from pyspark.sql import SQLContext
   
 sc = SparkContext.getOrCreate()
 glueContext = GlueContext(sc)
@@ -56,9 +58,7 @@ for column in temps_to_convert:
 pd.set_option('display.max_rows', 85)
 pd.set_option('display.max_columns', 85)
 data_transform
-# Import Dynamic DataFrame class
-from awsglue.dynamicframe import DynamicFrame
-from pyspark.sql import SQLContext
+
 sqlContext = SQLContext(sc)
 spark_dff = sqlContext.createDataFrame(data_transform)
 #Convert from Spark Data Frame to Glue Dynamic Frame
