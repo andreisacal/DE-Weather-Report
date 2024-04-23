@@ -55,10 +55,7 @@ def flatten_json(y):
     return out
 
 # Reading JSON data from Amazon S3 bucket into a DataFrame
-df = spark.read.json('s3://airflow-andrei-bucket/DAGoutput/', multiLine=True)
-
-# Getting the type of DataFrame (it's not used further in the script)
-type(df)
+df = spark.read.json('s3://(bucket-name)/(folder-name)/', multiLine=True)
 
 # Converting DataFrame to JSON format and then collecting it into a list
 data_dict = df.toJSON().map(lambda x: json.loads(x)).collect()
@@ -96,13 +93,6 @@ temps_to_convert = ['temp', 'feels_like', 'temp_min', 'temp_max']
 for column in temps_to_convert:
     data_transform[column] = data_transform[column] - 273.15
 
-# Setting display options for pandas DataFrame
-pd.set_option('display.max_rows', 85)
-pd.set_option('display.max_columns', 85)
-
-# Displaying the transformed DataFrame
-data_transform
-
 # Initializing SQLContext with SparkContext
 sqlContext = SQLContext(sc)
 
@@ -112,21 +102,18 @@ spark_dff = sqlContext.createDataFrame(data_transform)
 # Converting Spark DataFrame to Glue DynamicFrame
 dyfCustomersConvert = DynamicFrame.fromDF(spark_dff, glueContext, "convert")
 
-# Displaying the DynamicFrame
-dyfCustomersConvert.show()
-
 # Defining connection options for writing data to Redshift
 my_conn_options = {
-    "dbtable": "public.weather_data",
-    "database": "dev"
+    "dbtable": "(table-name)",
+    "database": "(database-name)"
 }
 
 # Writing the DynamicFrame to Redshift using JDBC connection
 redshift_results = glueContext.write_dynamic_frame.from_jdbc_conf(
     frame=dyfCustomersConvert,
-    catalog_connection="redshift_connection",
+    catalog_connection="(glue-connection-name)",
     connection_options=my_conn_options,
-    redshift_tmp_dir="s3://airflow-andrei-bucket/tmp_glue_redshift/"
+    redshift_tmp_dir="s3://(bucket-name)/(folder-name)/"
 )
 
 # Committing the job
