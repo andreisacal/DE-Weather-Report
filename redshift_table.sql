@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS weather_data (
-    clouds_percentage INT,
+    clouds_percentage BIGINT,
     co_ords_lat FLOAT,
     co_ords_lon FLOAT,
     dt TIMESTAMP,
     feels_like FLOAT,
-    humidity INT,
-    pressure INT,
+    humidity BIGINT,
+    pressure BIGINT,
     temp FLOAT,
     temp_max FLOAT,
     temp_min FLOAT,
@@ -16,6 +16,6 @@ CREATE TABLE IF NOT EXISTS weather_data (
     timezone TIMESTAMP,
     weather_description VARCHAR(255),
     weather_main VARCHAR(255),
-    wind_deg INT,
+    wind_deg BIGINT,
     wind_speed FLOAT
 );
