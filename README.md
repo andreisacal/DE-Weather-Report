@@ -42,7 +42,7 @@ Happy coding! 🌟
 
 ## References
 
-- #### APIs: [OpenWeatherAPI]([https://www.scraperapi.com/](https://openweathermap.org/))
+- #### APIs: [OpenWeatherAPI](https://openweathermap.org/)
 - #### Data Analysis: [Tableau](https://www.tableau.com/)
 - #### Cloud Computing: [AWS](https://aws.amazon.com/)
   - #### [Redshift](https://aws.amazon.com/glue/)
