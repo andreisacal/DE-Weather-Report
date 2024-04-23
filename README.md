@@ -43,7 +43,7 @@ Happy coding! 🌟
 
 - #### APIs: [OpenWeatherAPI]([https://www.scraperapi.com/](https://openweathermap.org/))
 - #### Cloud Computing: [AWS](https://aws.amazon.com/)
-- #### Data Analysis: [Tableau]([https://aws.amazon.com/](https://www.tableau.com/))
+- #### Data Analysis: [Tableau](https://www.tableau.com/)
   - #### [Redshift](https://aws.amazon.com/glue/)
   - #### [S3](https://aws.amazon.com/s3/)
   - #### [ATHENA](https://aws.amazon.com/athena/)
