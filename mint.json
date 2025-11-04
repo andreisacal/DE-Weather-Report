@@ -1,9 +1,38 @@
 {
-  "name": "My Project Docs",
+  "tabs": [
+    {
+      "name": "Components",
+      "url": "content"
+    },
+    {
+      "name": "Integrations",
+      "url": "integrations"
+    }
+  ],
   "navigation": [
     {
-      "group": "Getting Started",
-      "pages": ["introduction"]
+      "group": "Components",
+      "pages": [
+        "content/components/accordions",
+        "content/components/accordion-groups",
+        "content/components/callouts"
+      ]
+    },
+    {
+      "group": "API Components",
+      "pages": ["content/components/params", "content/components/responses"]
+    },
+    {
+      "group": "Analytics",
+      "pages": [
+        "integrations/analytics/overview",
+        "integrations/analytics/amplitude",
+        "integrations/analytics/clearbit"
+      ]
+    },
+    {
+      "group": "SDKs",
+      "pages": ["integrations/sdks/providers", "integrations/sdks/clients"]
     }
   ]
 }
