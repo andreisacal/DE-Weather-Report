@@ -1,4 +1,12 @@
 {
+  "name": "My Project Docs",
+  "favicon": "/favicon.ico",
+  "logo": "/logo.png",
+  "colors": {
+    "primary": "#3B82F6",
+    "light": "#FFFFFF",
+    "dark": "#0F172A"
+  },
   "tabs": [
     {
       "name": "Components",
@@ -20,7 +28,10 @@
     },
     {
       "group": "API Components",
-      "pages": ["content/components/params", "content/components/responses"]
+      "pages": [
+        "content/components/params",
+        "content/components/responses"
+      ]
     },
     {
       "group": "Analytics",
@@ -32,7 +43,10 @@
     },
     {
       "group": "SDKs",
-      "pages": ["integrations/sdks/providers", "integrations/sdks/clients"]
+      "pages": [
+        "integrations/sdks/providers",
+        "integrations/sdks/clients"
+      ]
     }
   ]
 }
