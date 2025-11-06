@@ -1,6 +1,6 @@
 # Data Engineering Project for Collecting Weather Data
 
-🚀 Introduction!:
+🚀 Andrei Sacal:
 
 Welcome back to my data engineering journey! This weekend, I delved into the realm of weather data collection and analysis, utilising the power of OpenWeatherAPI, Python, Airflow, AWS Glue, AWS Redshift and Tableau Cloud.
 
