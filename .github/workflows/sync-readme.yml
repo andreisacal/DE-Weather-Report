@@ -2,8 +2,6 @@ name: Sync README to Mintlify Docs
 
 on:
   push:
-    paths:
-      - "README.md"
     branches:
       - main  # or your default branch
 
