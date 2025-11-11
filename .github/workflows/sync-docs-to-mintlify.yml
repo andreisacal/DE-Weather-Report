@@ -50,20 +50,23 @@ jobs:
       - name: Sync markdown files to target repo
         if: steps.changed.outputs.changed_files != ''
         run: |
-          echo "🚀 Syncing Markdown files to target repo..."
+          TARGET_REPO_PATH="docs-repo"
+          TARGET_REPO_NAME="andreisacal/mintlify-test"
+
+          echo "🚀 Syncing Markdown files to target repo: $TARGET_REPO_NAME"
           cd "$GITHUB_WORKSPACE"
 
           for file in ${{ steps.changed.outputs.changed_files }}; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "🔍 Looking for $filename in target repo..."
-              found_path=$(find docs-repo -type f -name "$filename" | head -n 1 || true)
+              echo "🔍 Looking for $filename in target repo $TARGET_REPO_NAME..."
+              found_path=$(find "$TARGET_REPO_PATH" -type f -name "$filename" | head -n 1 || true)
 
               if [ -n "$found_path" ]; then
-                echo "✅ Found and updating $filename at $found_path."
+                echo "✅ Found and updating $filename at $found_path in $TARGET_REPO_NAME."
                 cp "$file" "$found_path"
               else
-                echo "❌ No match found for $filename, skipping."
+                echo "❌ No match found for $filename in $TARGET_REPO_NAME, skipping."
               fi
             fi
           done
