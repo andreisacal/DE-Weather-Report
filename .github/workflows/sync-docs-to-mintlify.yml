@@ -2,11 +2,10 @@ name: 📚 Sync Docs to Mintlify
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - "**/*.md"
-      - ".github/workflows/sync-docs.yml"
+      - '**/*.md'
+      - '.github/workflows/sync-docs.yml'
 
 concurrency:
   group: sync-docs-${{ github.ref }}
@@ -43,22 +42,30 @@ jobs:
           echo "📄 Detecting changed Markdown files..."
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- '*.md' 2>/dev/null || git ls-tree --name-only -r HEAD -- '*.md')
           
-          echo "📌 Validating Markdown formatting..."
+          echo "📌 Running markdownlint for formatting issues..."
           npm install -g markdownlint-cli
           VALIDATION_ERRORS=""
-          
+
           while IFS= read -r file; do
             if [ -f "$file" ]; then
-              if ! markdownlint "$file" 2>/dev/null; then
-                VALIDATION_ERRORS="${VALIDATION_ERRORS}⚠️ $file has formatting issues\n"
+              OUTPUT=$(markdownlint "$file" 2>&1 || true)
+              if [ -n "$OUTPUT" ]; then
+                VALIDATION_ERRORS="${VALIDATION_ERRORS}${OUTPUT}\n"
               fi
             fi
           done <<< "$CHANGED_FILES"
-          
+
+          if [ -z "$VALIDATION_ERRORS" ]; then
+            echo "✅ No formatting issues detected."
+          else
+            echo "⚠️ Found formatting issues:"
+            echo -e "$VALIDATION_ERRORS"
+          fi
+
           echo "changed_files<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
+
           echo "validation_errors<<EOF" >> $GITHUB_OUTPUT
           echo -e "$VALIDATION_ERRORS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -68,20 +75,21 @@ jobs:
         run: |
           SYNCED_FILES=""
           FAILED_FILES=""
+          FILES_UPDATED=0
           
           while IFS= read -r file; do
             if [ -f "$file" ]; then
               target_path="docs-repo/$file"
-              mkdir -p "$(dirname "$target_path")"
-              
-              if cp "$file" "$target_path"; then
+              if [ -f "$target_path" ]; then
+                cp "$file" "$target_path"
                 SYNCED_FILES="${SYNCED_FILES}✅ $file\n"
+                FILES_UPDATED=1
               else
-                FAILED_FILES="${FAILED_FILES}❌ $file\n"
+                FAILED_FILES="${FAILED_FILES}❌ $file (not found in target repo)\n"
               fi
             fi
           done <<< "${{ steps.detect.outputs.changed_files }}"
-          
+
           echo "synced_files<<EOF" >> $GITHUB_OUTPUT
           echo -e "$SYNCED_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -90,9 +98,11 @@ jobs:
           echo -e "$FAILED_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+          echo "files_updated=$FILES_UPDATED" >> $GITHUB_OUTPUT
+
       - name: 📬 Create Pull Request for Docs Sync
+        if: steps.sync.outputs.files_updated == '1'
         uses: peter-evans/create-pull-request@v5
-        if: steps.sync.outputs.synced_files != ''
         with:
           token: ${{ secrets.DOCS_REPO_TOKEN }}
           path: docs-repo
@@ -109,7 +119,7 @@ jobs:
             ### ✅ Synced Files
             ${{ steps.sync.outputs.synced_files }}
             
-            ### ⚠️ Validation Warnings
+            ### ⚠️ Formatting Issues
             ${{ steps.detect.outputs.validation_errors }}
             
             ### ❌ Failed Files
@@ -127,7 +137,7 @@ jobs:
           ## ✅ Synced Files
           ${{ steps.sync.outputs.synced_files }}
           
-          ## ⚠️ Validation Warnings
+          ## ⚠️ Formatting Issues
           ${{ steps.detect.outputs.validation_errors }}
           
           ## ❌ Failed Files
