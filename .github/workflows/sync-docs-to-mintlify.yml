@@ -20,7 +20,7 @@ jobs:
         with:
           repository: andreisacal/mintlify-test
           token: ${{ secrets.DOCS_REPO_TOKEN }}
-          path: mintlify
+          path: docs-repo
 
       - name: Get changed markdown files
         id: changed
