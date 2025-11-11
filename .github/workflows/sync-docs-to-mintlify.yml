@@ -14,8 +14,10 @@ jobs:
     steps:
       - name: Checkout DE-Weather-Report
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Checkout DE-Twitter-Scraping (Mintlify repo)
+      - name: Checkout Mintlify docs repo
         uses: actions/checkout@v4
         with:
           repository: andreisacal/mintlify-test
