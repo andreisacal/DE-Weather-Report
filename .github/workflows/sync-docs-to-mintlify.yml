@@ -45,9 +45,11 @@ jobs:
 
       - name: Sync markdown files to target repo
         if: steps.changed.outputs.changed_files != ''
+        id: sync
         run: |
           TARGET_REPO_PATH="docs-repo"
           TARGET_REPO_NAME="andreisacal/mintlify-test"
+          CHANGED_FLAG=0
 
           echo "🚀 Syncing Markdown files to target repo: $TARGET_REPO_NAME"
           cd "$GITHUB_WORKSPACE"
@@ -61,13 +63,17 @@ jobs:
               if [ -n "$found_path" ]; then
                 echo "✅ Found and updating $filename at $found_path in $TARGET_REPO_NAME."
                 cp "$file" "$found_path"
+                CHANGED_FLAG=1
               else
                 echo "❌ No match found for $filename in $TARGET_REPO_NAME, skipping."
               fi
             fi
           done
 
+          echo "files_updated=$CHANGED_FLAG" >> $GITHUB_OUTPUT
+
       - name: Commit and push changes to target repo
+        if: steps.sync.outputs.files_updated == '1'
         run: |
           TARGET_REPO_PATH="docs-repo"
           TARGET_REPO_NAME="andreisacal/mintlify-test"
@@ -79,3 +85,4 @@ jobs:
           git commit -m "Sync updated markdown files from Repo A" || echo "No changes to commit"
           git push origin main
           echo "✅ Pushed changes to $TARGET_REPO_NAME"
+
