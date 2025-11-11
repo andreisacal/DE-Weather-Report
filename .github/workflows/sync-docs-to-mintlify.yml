@@ -69,22 +69,24 @@ jobs:
           echo -e "$VALIDATION_ERRORS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: 🚀 Sync Markdown Files to Target Repo
+      - name: 🚀 Sync Markdown Files to Target Repo as .mdx
         id: sync
         run: |
           SYNCED_FILES=""
           SKIPPED_FILES=""
           FILES_UPDATED=0
-          
+
           while IFS= read -r file; do
             if [ -f "$file" ]; then
-              target_path="docs-repo/$file"
+              filename_base=$(basename "$file" .md)
+              target_path="docs-repo/${filename_base}.mdx"  # look for .mdx in target repo
+
               if [ -f "$target_path" ]; then
                 cp "$file" "$target_path"
-                SYNCED_FILES="${SYNCED_FILES}✅ $file\n"
+                SYNCED_FILES="${SYNCED_FILES}✅ $file -> ${filename_base}.mdx\n"
                 FILES_UPDATED=1
               else
-                SKIPPED_FILES="${SKIPPED_FILES}❌ $file (not found in target repo, skipped)\n"
+                SKIPPED_FILES="${SKIPPED_FILES}❌ $file (no corresponding .mdx in target repo)\n"
               fi
             fi
           done <<< "${{ steps.detect.outputs.changed_files }}"
