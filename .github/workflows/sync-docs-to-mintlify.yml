@@ -1,4 +1,4 @@
-name: Sync API + Docs to Mintlify
+name: Sync Docs to Mintlify
 
 on:
   push:
@@ -12,19 +12,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout DE-Weather-Report
+      - name: Checkout Source Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Checkout Mintlify docs repo
+      - name: Checkout Target Docs Repository (Mintlify)
         uses: actions/checkout@v4
         with:
           repository: andreisacal/mintlify-test
           token: ${{ secrets.DOCS_REPO_TOKEN }}
           path: docs-repo
 
-      - name: Get changed markdown files
+      - name: Detect Changed Markdown Files
         id: changed
         run: |
           echo "Fetching full history for diff..."
@@ -43,7 +43,7 @@ jobs:
 
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
-      - name: Sync markdown files to target repo
+      - name: Sync Markdown Files to Mintlify Repo
         if: steps.changed.outputs.changed_files != ''
         id: sync
         run: |
@@ -72,7 +72,7 @@ jobs:
 
           echo "files_updated=$CHANGED_FLAG" >> $GITHUB_OUTPUT
 
-      - name: Commit and push changes to target repo
+      - name: Commit and Push Changes to Mintlify Repo
         if: steps.sync.outputs.files_updated == '1'
         run: |
           TARGET_REPO_PATH="docs-repo"
