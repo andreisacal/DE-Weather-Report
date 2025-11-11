@@ -34,7 +34,7 @@ jobs:
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 'lts/*'
 
       - name: 🔍 Detect and Validate Changed Markdown Files
         id: detect
@@ -79,11 +79,13 @@ jobs:
           while IFS= read -r file; do
             if [ -f "$file" ]; then
               filename_base=$(basename "$file" .md)
-              target_path="docs-repo/${filename_base}.mdx"  # look for .mdx in target repo
+              # Look for .mdx anywhere in the target repo
+              target_path=$(find docs-repo -type f -name "${filename_base}.mdx" | head -n 1 || true)
 
-              if [ -f "$target_path" ]; then
+              if [ -n "$target_path" ]; then
                 cp "$file" "$target_path"
-                SYNCED_FILES="${SYNCED_FILES}✅ $file -> ${filename_base}.mdx\n"
+                relpath=$(realpath --relative-to=docs-repo "$target_path")
+                SYNCED_FILES="${SYNCED_FILES}✅ $file -> $relpath\n"
                 FILES_UPDATED=1
               else
                 SKIPPED_FILES="${SKIPPED_FILES}❌ $file (no corresponding .mdx in target repo)\n"
