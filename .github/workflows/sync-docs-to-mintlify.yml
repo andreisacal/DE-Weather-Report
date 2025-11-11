@@ -5,10 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "openapi.yaml"
-      - "openapi.yml"
-      - "docs/**"
-      - "README.md"
+      - "**/*.md"
 
 jobs:
   sync-docs:
@@ -25,41 +22,41 @@ jobs:
           token: ${{ secrets.DOCS_REPO_TOKEN }}
           path: mintlify
 
-      - name: Sync files
+      - name: Get changed markdown files
+        id: changed
         run: |
-          # Copy OpenAPI spec if it exists
-          if [ -f openapi.yaml ]; then
-            cp openapi.yaml mintlify/openapi.yaml
-          elif [ -f openapi.yml ]; then
-            cp openapi.yml mintlify/openapi.yml
-          fi
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.md$' || true)
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
-          # Optional: copy docs folder
-          if [ -d docs ]; then
-            mkdir -p mintlify/docs
-            cp -r docs/* mintlify/docs/
-          fi
-
-          # Optional: update Mintlify index with README
-          if [ -f README.md ]; then
-            echo "---" > mintlify/index.mdx
-            echo "title: 'Weather Report Docs'" >> mintlify/index.mdx
-            echo "description: 'Auto-synced from DE-Weather-Report'" >> mintlify/index.mdx
-            echo "---" >> mintlify/index.mdx
-            echo "" >> mintlify/index.mdx
-            cat README.md >> mintlify/index.mdx
-          fi
-
-      - name: Commit and push
+      - name: Sync markdown files to target repo
+        if: steps.changed.outputs.changed_files != ''
         run: |
-          cd mintlify
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          cd "$GITHUB_WORKSPACE"
+
+          echo "Changed files:"
+          echo "${{ steps.changed.outputs.changed_files }}"
+
+          for file in ${{ steps.changed.outputs.changed_files }}; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              echo "Looking for $filename in target repo..."
+
+              found_path=$(find docs-repo -type f -name "$filename" | head -n 1 || true)
+
+              if [ -n "$found_path" ]; then
+                echo "Found $filename at $found_path — updating it."
+                cp "$file" "$found_path"
+              else
+                echo "No match found for $filename, skipping."
+              fi
+            fi
+          done
+
+      - name: Commit and push changes to target repo
+        run: |
+          cd docs-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
-          git commit -m "Sync docs and OpenAPI from DE-Weather-Report" || echo "No changes to commit"
+          git commit -m "Sync updated markdown files from Repo A" || echo "No changes to commit"
           git push origin main
-
-      - name: Trigger Mintlify rebuild
-        run: |
-          curl -X POST "https://api.mintlify.com/deploy" \
-          -H "Authorization: Bearer ${{ secrets.MINTLIFY_API_KEY }}"
