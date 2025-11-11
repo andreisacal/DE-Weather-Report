@@ -28,26 +28,45 @@ jobs:
           CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.md$' || true)
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
+      - name: Get changed markdown files
+        id: changed
+        run: |
+          echo "Fetching remote main branch for diff..."
+          git fetch origin main || true
+
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD | grep '\.md$' || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "⚠️ No Markdown (.md) files changed in this push."
+            echo "This means the sync step will be skipped."
+          else
+            echo "✅ Markdown files changed:"
+            echo "$CHANGED_FILES"
+          fi
+
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+
+      - name: No Markdown changes detected
+        if: steps.changed.outputs.changed_files == ''
+        run: echo "🟡 No .md files were modified — skipping sync to docs repo."
+
       - name: Sync markdown files to target repo
         if: steps.changed.outputs.changed_files != ''
         run: |
+          echo "🚀 Syncing Markdown files to target repo..."
           cd "$GITHUB_WORKSPACE"
-
-          echo "Changed files:"
-          echo "${{ steps.changed.outputs.changed_files }}"
 
           for file in ${{ steps.changed.outputs.changed_files }}; do
             if [ -f "$file" ]; then
               filename=$(basename "$file")
-              echo "Looking for $filename in target repo..."
-
+              echo "🔍 Looking for $filename in target repo..."
               found_path=$(find docs-repo -type f -name "$filename" | head -n 1 || true)
 
               if [ -n "$found_path" ]; then
-                echo "Found $filename at $found_path — updating it."
+                echo "✅ Found and updating $filename at $found_path."
                 cp "$file" "$found_path"
               else
-                echo "No match found for $filename, skipping."
+                echo "❌ No match found for $filename, skipping."
               fi
             fi
           done
