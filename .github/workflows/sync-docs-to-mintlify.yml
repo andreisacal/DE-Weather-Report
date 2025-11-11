@@ -25,12 +25,6 @@ jobs:
       - name: Get changed markdown files
         id: changed
         run: |
-          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.md$' || true)
-          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
-
-      - name: Get changed markdown files
-        id: changed
-        run: |
           echo "Fetching remote main branch for diff..."
           git fetch origin main || true
 
