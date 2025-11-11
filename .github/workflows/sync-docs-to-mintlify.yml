@@ -27,9 +27,11 @@ jobs:
       - name: Get changed markdown files
         id: changed
         run: |
-          echo "Getting list of changed Markdown files from push event..."
-          
-          CHANGED_FILES=$(jq -r '.commits[].added[], .commits[].modified[] | select(endswith(".md"))' "$GITHUB_EVENT_PATH" || true)
+          echo "Fetching full history for diff..."
+          git fetch --prune --unshallow || true
+
+          # Detect all modified or added .md files in this push
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '\.md$' || true)
 
           if [ -z "$CHANGED_FILES" ]; then
             echo "⚠️ No Markdown (.md) files changed in this push."
@@ -39,7 +41,6 @@ jobs:
             echo "$CHANGED_FILES"
           fi
 
-          # GitHub Actions output
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
       - name: No Markdown changes detected
