@@ -43,10 +43,6 @@ jobs:
 
           echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
-      - name: No Markdown changes detected
-        if: steps.changed.outputs.changed_files == ''
-        run: echo "🟡 No .md files were modified — skipping sync to docs repo."
-
       - name: Sync markdown files to target repo
         if: steps.changed.outputs.changed_files != ''
         run: |
@@ -73,9 +69,13 @@ jobs:
 
       - name: Commit and push changes to target repo
         run: |
-          cd docs-repo
+          TARGET_REPO_PATH="docs-repo"
+          TARGET_REPO_NAME="andreisacal/mintlify-test"
+
+          cd "$TARGET_REPO_PATH"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Sync updated markdown files from Repo A" || echo "No changes to commit"
           git push origin main
+          echo "✅ Pushed changes to $TARGET_REPO_NAME"
