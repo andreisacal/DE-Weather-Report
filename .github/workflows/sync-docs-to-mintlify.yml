@@ -2,87 +2,133 @@ name: Sync Docs to Mintlify
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
-      - "**/*.md"
+      - '**.md'
+      - '.github/workflows/sync-docs.yml'
+
+concurrency:
+  group: sync-docs-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   sync-docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout Source Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2  # Enough for most comparisons
 
-      - name: Checkout Target Docs Repository (Mintlify)
+      - name: Checkout Target Docs Repository
         uses: actions/checkout@v4
         with:
           repository: andreisacal/mintlify-test
           token: ${{ secrets.DOCS_REPO_TOKEN }}
           path: docs-repo
 
-      - name: Detect Changed Markdown Files
-        id: changed
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Detect and Validate Changed Files
+        id: detect
         run: |
-          echo "Fetching full history for diff..."
-          git fetch --prune --unshallow || true
-
-          # Detect all modified or added .md files in this push
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep '\.md$' || true)
-
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "⚠️ No Markdown (.md) files changed in this push."
-            echo "This means the sync step will be skipped."
-          else
-            echo "✅ Markdown files changed:"
-            echo "$CHANGED_FILES"
-          fi
-
-          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
-
-      - name: Sync Markdown Files to Mintlify Repo
-        if: steps.changed.outputs.changed_files != ''
-        id: sync
-        run: |
-          TARGET_REPO_PATH="docs-repo"
-          TARGET_REPO_NAME="andreisacal/mintlify-test"
-          CHANGED_FLAG=0
-
-          echo "🚀 Syncing Markdown files to target repo: $TARGET_REPO_NAME"
-          cd "$GITHUB_WORKSPACE"
-
-          for file in ${{ steps.changed.outputs.changed_files }}; do
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD -- '*.md' 2>/dev/null || git ls-tree --name-only -r HEAD -- '*.md')
+          
+          # Validate markdown
+          npm install -g markdownlint-cli
+          VALIDATION_ERRORS=""
+          
+          while IFS= read -r file; do
             if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              echo "🔍 Looking for $filename in target repo $TARGET_REPO_NAME..."
-              found_path=$(find "$TARGET_REPO_PATH" -type f -name "$filename" | head -n 1 || true)
-
-              if [ -n "$found_path" ]; then
-                echo "✅ Found and updating $filename at $found_path in $TARGET_REPO_NAME."
-                cp "$file" "$found_path"
-                CHANGED_FLAG=1
-              else
-                echo "❌ No match found for $filename in $TARGET_REPO_NAME, skipping."
+              if ! markdownlint "$file" 2>/dev/null; then
+                VALIDATION_ERRORS="${VALIDATION_ERRORS}Warning: $file has formatting issues\n"
               fi
             fi
-          done
+          done <<< "$CHANGED_FILES"
+          
+          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "validation_errors<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$VALIDATION_ERRORS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-          echo "files_updated=$CHANGED_FLAG" >> $GITHUB_OUTPUT
-
-      - name: Commit and Push Changes to Mintlify Repo
-        if: steps.sync.outputs.files_updated == '1'
+      - name: Sync Files with Path Preservation
+        id: sync
         run: |
-          TARGET_REPO_PATH="docs-repo"
-          TARGET_REPO_NAME="andreisacal/mintlify-test"
+          SYNCED_FILES=""
+          FAILED_FILES=""
+          
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              # Option 1: Mirror structure
+              target_path="docs-repo/$file"
+              mkdir -p "$(dirname "$target_path")"
+              
+              if cp "$file" "$target_path"; then
+                SYNCED_FILES="${SYNCED_FILES}✅ $file\n"
+              else
+                FAILED_FILES="${FAILED_FILES}❌ $file\n"
+              fi
+            fi
+          done <<< "${{ steps.detect.outputs.changed_files }}"
+          
+          echo "synced_files<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$SYNCED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "failed_files<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FAILED_FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-          cd "$TARGET_REPO_PATH"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Sync updated markdown files from Repo A" || echo "No changes to commit"
-          git push origin main
-          echo "✅ Pushed changes to $TARGET_REPO_NAME"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          path: docs-repo
+          commit-message: "docs: sync from main repository"
+          branch: auto-sync/${{ github.sha }}
+          delete-branch: true
+          title: "📚 Sync Documentation from Main Repository"
+          body: |
+            ## Documentation Sync
+            
+            **Source:** ${{ github.repository }}@${{ github.sha }}
+            **Triggered by:** ${{ github.actor }}
+            
+            ### Changed Files
+            ${{ steps.sync.outputs.synced_files }}
+            
+            ### Validation Warnings
+            ${{ steps.detect.outputs.validation_errors }}
+            
+            ### Failed Files
+            ${{ steps.sync.outputs.failed_files }}
+            
+            ---
+            *This PR was automatically generated by the docs sync workflow.*
 
+      - name: Job Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          # 📚 Documentation Sync Summary
+          
+          ## Synced Files
+          ${{ steps.sync.outputs.synced_files }}
+          
+          ## Validation Issues
+          ${{ steps.detect.outputs.validation_errors }}
+          
+          ## Failed Files
+          ${{ steps.sync.outputs.failed_files }}
+          EOF
